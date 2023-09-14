@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := build-app
+
 setup:
 	$ pip install conan
 	$ sudo apt-get install git gcc g++ build-essential cmake
@@ -8,32 +10,40 @@ build-app:
 	$ ./scripts/build.sh
 PHONY: build-app
 
-run:
-	$ export $(cat .env | xargs) && ./build/backend-cockfighting-api
-PHONY: run
-
 build-image:
-	# $ docker build -t lucaswilliameufrasio/backend-cockfighting-api --progress=plain .
-	$ docker build --no-cache -t lucaswilliameufrasio/backend-cockfighting-api --progress=plain -f ./Dockerfile .
+	$ docker build --no-cache -t macedot/rinhadebackend-cpp-drogon --progress=plain -f ./Dockerfile .
 PHONY: build-image
 
-start-database:
-	$ docker compose -f docker-compose.dev.yml up -d postgres
+start-dev:
+	$ docker compose -f docker-compose.dev.yml up -d database
+	run-dev
 PHONY: start-database
 
-stop-all-compose-services:
+run-dev:
+	$ export $(cat .env | xargs) && ./build/rinhadebackend-cpp-drogon
+PHONY: run
+
+stop-dev:
 	$ docker compose -f docker-compose.dev.yml down
-	$ docker volume rm backend-cockfighintg-q3-2023_postgres_data
-PHONY: stop-all-compose-services
+	$ docker volume rm rinhadebackend-cpp-drogon-postgres-dev-data
+PHONY: stop-dev
 
-run-container:
-	$ docker run --rm --name backend-cockfighting-api --env-file=.env -p 9998:9998 lucaswilliameufrasio/backend-cockfighting-api
-PHONY: run-container
+up:
+	$ docker compose -f docker-compose.yml up -d
+PHONY: start-all
 
-stop-container:
-	$ docker stop backend-cockfighting-api
-PHONY: stop-container
+down:
+	$ docker compose -f docker-compose.yml down
+PHONY: stop-all
 
-push-image:
-	$ docker push lucaswilliameufrasio/backend-cockfighting-api
-PHONY: push-image
+# run-container:
+# 	$ docker run --rm --name rinhadebackend-cpp-drogon --env-file=.env -p 9998:9998 macedot/rinhadebackend-cpp-drogon
+# PHONY: run-container
+
+# stop-container:
+# 	$ docker stop rinhadebackend-cpp-drogon
+# PHONY: stop-container
+
+# push-image:
+# 	$ docker push macedot/rinhadebackend-cpp-drogon
+# PHONY: push-image

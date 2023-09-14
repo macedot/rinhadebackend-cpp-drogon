@@ -2,28 +2,31 @@ version: "3.7"
 
 services:
   postgres:
-    image: postgres:15
-    container_name: backend-cockfighting-dev-database
+    image: postgres:alpine
+    container_name: rinhadebackend-cpp-drogon-postgres-dev
     restart: always
-    environment: 
+    environment:
       - POSTGRES_PASSWORD=fight
       - POSTGRES_DB=fight
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - dbdata:/var/lib/postgresql/data
       - ./docker/database/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - 5458:5432
-    networks:
-      - fight-pit
+      - ./docker/database/postgresql.conf:/etc/postgresql/postgresql.conf
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    network_mode: host
+    tmpfs:
+      - /run
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
-      interval: 10s
+      test: [ "CMD-SHELL", "[ -r /var/run/postgresql/ready ] || ( pg_isready && touch /var/run/postgresql/ready)" ]
+      interval: 5s
       timeout: 5s
-      retries: 5
-
-networks:
-  fight-pit:
-    driver: bridge
+      retries: 10
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.85'
+          memory: '1.8GB'
 
 volumes:
-  postgres_data:
+  postgres-dev-data:
