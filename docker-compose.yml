@@ -1,15 +1,9 @@
 version: "3.7"
 
 services:
-  api1: # API - Instância 01
+  api1: &api # API - Instância 01
     # image: lucaswilliameufrasio/backend-cockfighting-api
-    # container paused, has to manually start from:
-    # docker-compose exec api1 sh
-    # then:
-    # /app/backend-cockfighting-api &
-    # trying to start directly makes it crash
     build: .
-    command: sleep infinity
     environment:
       - PORT=8080
       - DB_HOST=localhost
@@ -20,8 +14,14 @@ services:
       - DB_MAX_CONNECTIONS=75
       - NUM_THREADS=20
     depends_on:
-      - db
+      database:
+        condition: service_healthy
     network_mode: host
+    ulimits:
+      nproc: 1000000
+      nofile:
+        soft: 1000000
+        hard: 1000000
     deploy:
       resources:
         limits:
@@ -29,9 +29,7 @@ services:
           memory: '0.4GB'
 
   api2: # API - Instância 02
-    # image: lucaswilliameufrasio/backend-cockfighting-api
-    build: .
-    command: sleep infinity
+    <<: *api
     environment:
       - PORT=8081
       - DB_HOST=localhost
@@ -42,13 +40,8 @@ services:
       - DB_MAX_CONNECTIONS=75
       - NUM_THREADS=20
     depends_on:
-      - db
-    network_mode: host
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: '0.4GB'
+      - api1
+
 
   nginx: # Load Balancer
     image: nginx:latest
@@ -65,23 +58,24 @@ services:
           cpus: '0.15'
           memory: '0.4GB'
 
-  db:
+  database:
     image: postgres:15
-    hostname: db
-    container_name: backend-cockfighting-database
-    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     environment:
       - POSTGRES_PASSWORD=fight
       - POSTGRES_DB=fight
     volumes:
       - ./docker/database/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./docker/database/postgresql.conf:/etc/postgresql/postgresql.conf
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     network_mode: host
+    tmpfs:
+      - /run
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
-      interval: 10s
+      test: [ "CMD-SHELL", "[ -r /var/run/postgresql/ready ] || ( pg_isready && touch /var/run/postgresql/ready)" ]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
     deploy:
       resources:
         limits:

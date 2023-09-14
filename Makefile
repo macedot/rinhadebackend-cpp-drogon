@@ -1,8 +1,6 @@
 setup:
-	$ pip install conan && \ 
-		sudo apt-get install git gcc g++ build-essential cmake
-		# sudo apt-get install git gcc g++ libjsoncpp-dev uuid-dev zlib1g-dev build-essential cmake
-
+	$ pip install conan
+	$ sudo apt-get install git gcc g++ build-essential cmake
 	$ chmod +x ./scripts/build.sh
 PHONY: setup
 
@@ -39,4 +37,3 @@ PHONY: stop-container
 push-image:
 	$ docker push lucaswilliameufrasio/backend-cockfighting-api
 PHONY: push-image
-
