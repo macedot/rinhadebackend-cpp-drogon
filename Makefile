@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := build-app
+.DEFAULT_GOAL := build
 
 setup:
 	$ pip install conan
@@ -6,9 +6,9 @@ setup:
 	$ chmod +x ./scripts/build.sh
 PHONY: setup
 
-build-app:
+build:
 	$ ./scripts/build.sh
-PHONY: build-app
+PHONY: build
 
 build-image:
 	$ docker build --no-cache -t macedot/rinhadebackend-cpp-drogon --progress=plain -f ./Dockerfile .

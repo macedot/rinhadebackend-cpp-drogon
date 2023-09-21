@@ -9,7 +9,7 @@
 
 auto getPessoasByTerm()
 {
-    return [](const drogon::HttpRequestPtr& req, std::function<void(const drogon::HttpResponsePtr&)>&& callback,
+    return [](const drogon::HttpRequestPtr&, std::function<void(const drogon::HttpResponsePtr&)>&& callback,
               const std::string& search) {
         if (search.empty()) {
             callback(makeResponseBadRequest()); // "The query parameter 't' is required"

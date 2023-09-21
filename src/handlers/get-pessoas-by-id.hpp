@@ -9,7 +9,7 @@
 
 auto getPessoasById()
 {
-    return [](const drogon::HttpRequestPtr& req, std::function<void(const drogon::HttpResponsePtr&)>&& callback,
+    return [](const drogon::HttpRequestPtr&, std::function<void(const drogon::HttpResponsePtr&)>&& callback,
               const std::string& id) {
         if (id.size() != 36) {
             callback(makeResponseNotFound()); // "This person do not exist."

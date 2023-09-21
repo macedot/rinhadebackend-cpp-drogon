@@ -24,8 +24,8 @@ int main()
     using namespace drogon;
 
     const auto port             = atoi(getEnvVar("PORT"));
-    const auto dbMaxConnections = atol(getEnvVar("DB_MAX_CONNECTIONS"));
     const auto numThreads       = atoi(getEnvVar("NUM_THREADS"));
+    const auto dbMaxConnections = atol(getEnvVar("DB_MAX_CONNECTIONS"));
     const auto dbHost           = getEnvVar("DB_HOST");
     const auto dbPort           = atoi(getEnvVar("DB_PORT"));
     const auto dbName           = getEnvVar("DB_NAME");

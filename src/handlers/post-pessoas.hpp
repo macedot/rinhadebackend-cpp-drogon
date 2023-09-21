@@ -52,7 +52,7 @@ auto postPessoas()
         }
 
         const auto birthDate = jsonPtr->get("nascimento", "").asString();
-        if (birthDate.empty() || !isDateValid(birthDate)) {
+        if (birthDate.empty() || birthDate.size() != 10 || !isDateValid(birthDate)) {
             callback(makeResponseUnprocessableEntity());
             return;
         }
@@ -60,13 +60,13 @@ auto postPessoas()
         std::string stacks;
         const auto  stacksJson = jsonPtr->get("stack", "");
         if (!stacksJson.isNull() && !stacksJson.empty() && stacksJson.isArray()) {
-            if (stacksJson[0].isNull() || !stacksJson[0].isString()) {
+            if (stacksJson[0].isNull() || !stacksJson[0].isString() || stacksJson[0].size() > 32) {
                 callback(makeResponseUnprocessableEntity());
                 return;
             }
             stacks += stacksJson[0].asString();
             for (int i = 1; i < int(stacksJson.size()); ++i) {
-                if (stacksJson[i].isNull() || !stacksJson[i].isString()) {
+                if (stacksJson[i].isNull() || !stacksJson[i].isString() || stacksJson[i].size() > 32) {
                     callback(makeResponseUnprocessableEntity());
                     return;
                 }
@@ -80,12 +80,11 @@ auto postPessoas()
         auto f = clientPtr->execSqlAsyncFuture(
             "INSERT INTO people (id, nickname, name, birth_date, stack)"
             " VALUES ($1, $2, $3, $4, $5)"
-            " ON CONFLICT DO NOTHING"
+            // " ON CONFLICT DO NOTHING"
             " RETURNING id;",
             uuid, nickname, name, birthDate, stacks);
 
         std::string id;
-        Json::Value json;
 
         try {
             auto result = f.get();
@@ -93,7 +92,7 @@ auto postPessoas()
                 callback(makeFailedResponse());
                 return;
             }
-            json["id"] = id = result[0]["id"].as<std::string>();
+            id = result[0]["id"].as<std::string>();
         }
         catch (const drogon::orm::DrogonDbException& e) {
             logException(e.base().what());
@@ -101,11 +100,8 @@ auto postPessoas()
             return;
         }
 
-        const std::string location = "/pessoas/" + id;
-
-        auto resp = drogon::HttpResponse::newHttpJsonResponse(json);
-        resp->addHeader("Location", location);
-        resp->setStatusCode(drogon::HttpStatusCode::k201Created);
+        auto resp = buildHttpResponse(drogon::HttpStatusCode::k201Created);
+        resp->addHeader("Location", std::string{"/pessoas/"} + id);
         callback(resp);
     };
 }

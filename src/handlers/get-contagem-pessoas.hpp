@@ -9,7 +9,7 @@
 
 auto getContagemPessoas()
 {
-    return [](const drogon::HttpRequestPtr& req, std::function<void(const drogon::HttpResponsePtr&)>&& callback) {
+    return [](const drogon::HttpRequestPtr&, std::function<void(const drogon::HttpResponsePtr&)>&& callback) {
         auto clientPtr = drogon::app().getDbClient();
         auto f         = clientPtr->execSqlAsyncFuture("SELECT COUNT(*) AS count FROM people;");
 

@@ -6,7 +6,7 @@
 
 void logInfo(std::string_view message) { std::cout << message << "\n"; }
 
-void logException(std::string_view message) { std::cerr << "error:" << message << "\n"; }
+void logException(std::string_view message) { std::cerr << "ERROR:" << message << "\n"; }
 
 // function expects the string in format yyyy-mm-dd:
 bool extractDate(const std::string& s, int& y, int& m, int& d)
@@ -15,11 +15,18 @@ bool extractDate(const std::string& s, int& y, int& m, int& d)
     char               delimiter;
 
     if (is >> y >> delimiter >> m >> delimiter >> d) {
-        struct tm t = {0};
-        t.tm_mday   = d;
-        t.tm_mon    = m - 1;
-        t.tm_year   = y - 1900;
-        t.tm_isdst  = -1;
+        struct tm t;
+        t.tm_sec    = 0;        /* Seconds.	[0-60] (1 leap second) */
+        t.tm_min    = 0;        /* Minutes.	[0-59] */
+        t.tm_hour   = 0;        /* Hours.	[0-23] */
+        t.tm_mday   = d;        /* Day.		[1-31] */
+        t.tm_mon    = m - 1;    /* Month.	[0-11] */
+        t.tm_year   = y - 1900; /* Year	- 1900.  */
+        t.tm_wday   = 0;        /* Day of week.	[0-6] */
+        t.tm_yday   = 0;        /* Days in year.[0-365]	*/
+        t.tm_isdst  = -1;       /* DST.		[-1/0/1]*/
+        t.tm_gmtoff = 0;        /* Seconds east of UTC.  */
+        t.tm_zone   = nullptr;  /* Timezone abbreviation.  */
 
         // normalize:
         time_t           when = mktime(&t);
@@ -34,15 +41,12 @@ bool extractDate(const std::string& s, int& y, int& m, int& d)
         return (norm->tm_mday == d && norm->tm_mon == m - 1 && norm->tm_year == y - 1900);
     }
 
+    logException("INVALID DATE[" + s + "]");
     return false;
 }
 
 bool isDateValid(const std::string& date)
 {
-    if (date.size() != 10) {
-        return false;
-    }
-
     int y, m, d;
     return extractDate(date, y, m, d);
 }
