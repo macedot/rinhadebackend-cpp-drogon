@@ -24,7 +24,13 @@ auto postPessoas()
             return;
         }
 
-        const auto nickname = jsonPtr->get("apelido", "").asString();
+        const auto nicknameValue = jsonPtr->get("apelido", "");
+        if (nicknameValue.isNull() || !nicknameValue.isString()) {
+            callback(makeResponseUnprocessableEntity());
+            return;
+        }
+
+        const auto nickname = nicknameValue.asString();
         if (nickname.empty() || nickname.size() > 32) {
             callback(makeResponseUnprocessableEntity());
             return;
@@ -45,33 +51,54 @@ auto postPessoas()
             return;
         }
 
-        const auto name = jsonPtr->get("nome", "").asString();
+        const auto nameValue = jsonPtr->get("nome", "");
+        if (nameValue.isNull() || !nameValue.isString()) {
+            callback(makeResponseUnprocessableEntity());
+            return;
+        }
+
+        const auto name = nameValue.asString();
         if (name.empty() || name.size() > 100) {
             callback(makeResponseUnprocessableEntity());
             return;
         }
 
-        const auto birthDate = jsonPtr->get("nascimento", "").asString();
+        const auto birthDateValue = jsonPtr->get("nascimento", "");
+        if (birthDateValue.isNull() || !birthDateValue.isString()) {
+            callback(makeResponseUnprocessableEntity());
+            return;
+        }
+
+        const auto birthDate = birthDateValue.asString();
         if (birthDate.empty() || birthDate.size() != 10 || !isDateValid(birthDate)) {
             callback(makeResponseUnprocessableEntity());
             return;
         }
 
-        std::string stacks;
-        const auto  stacksJson = jsonPtr->get("stack", "");
+        Json::String elem;
+        std::string  stacks;
+        const auto   stacksJson = jsonPtr->get("stack", "");
         if (!stacksJson.isNull() && !stacksJson.empty() && stacksJson.isArray()) {
-            if (stacksJson[0].isNull() || !stacksJson[0].isString() || stacksJson[0].size() > 32) {
+            if (stacksJson[0].isNull() || !stacksJson[0].isString()) {
                 callback(makeResponseUnprocessableEntity());
                 return;
             }
-            stacks += stacksJson[0].asString();
+            stacks = stacksJson[0].asString();
+            if (stacks.size() > 32) {
+                callback(makeResponseUnprocessableEntity());
+                return;
+            }
             for (int i = 1; i < int(stacksJson.size()); ++i) {
-                if (stacksJson[i].isNull() || !stacksJson[i].isString() || stacksJson[i].size() > 32) {
+                if (stacksJson[i].isNull() || !stacksJson[i].isString()) {
                     callback(makeResponseUnprocessableEntity());
                     return;
                 }
-                stacks += ",";
-                stacks += stacksJson[i].asString();
+                elem = stacksJson[i].asString();
+                if (elem.size() > 32) {
+                    callback(makeResponseUnprocessableEntity());
+                    return;
+                }
+                stacks += "," + elem;
             }
         }
 
